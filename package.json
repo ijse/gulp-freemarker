@@ -1,10 +1,12 @@
-
 {
   "name": "gulp-freemarker",
   "version": "0.0.0",
-  "description": "A plugin for Gulp",
+  "description": "A plugin for Gulp to process Freemarker template files like Java.",
   "keywords": [
-    "gulpplugin"
+    "gulpplugin",
+    "freemarker",
+    "freemarker.js",
+    "fmpp"
   ],
   "author": {
     "name": "Li Yi",
@@ -17,8 +19,9 @@
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "dependencies": {
-    "through2": "*",
-    "gulp-util": "~2.2.0"
+    "freemarker.js": "^1.0.0",
+    "gulp-util": "~2.2.0",
+    "through2": "*"
   },
   "devDependencies": {
     "mocha": "*",
