@@ -1,0 +1,6 @@
+{
+	"tpl": "hello.ftl",
+	"data": {
+		"name": "World"
+	}
+}
