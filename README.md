@@ -17,22 +17,46 @@ Then, add it to your `gulpfile.js`:
 ```javascript
 var freemarker = require("gulp-freemarker");
 
-gulp.src("./src/*.ext")
+gulp.src("./mock/*.json")
 	.pipe(freemarker({
-		msg: "Hello Gulp!"
+		viewRoot: "WEB-INF/views/",
+		options: {}
 	}))
-	.pipe(gulp.dest("./dist"));
+	.pipe(gulp.dest("./www"));
 ```
+
+You should provide mock files, which type is json:
+
+```json
+{
+	"tpl": "hello.ftl",
+	"data": {
+		"name": "World"
+	}
+}
+```
+
+
+* `tpl` is relative to `viewRoot`, gulp-freemarker will read and process `${viewRoot}/${tpl}` file.
+
+* `data` is the data model the template required.
+
 
 ## API
 
 ### freemarker(options)
 
-#### options.msg
+#### options.viewRoot
 Type: `String`
-Default: `Hello World`
+Required: true
 
-The message you wish to attach to file.
+The directory where all templates files in.
+
+#### options.options
+Type: `Object`
+Default: {}
+
+Options for [Freemarker.js](http://github.com/ijse/freemarker.js). see also [https://github.com/ijse/freemarker.js#configurations](https://github.com/ijse/freemarker.js#configurations).
 
 
 ## License
