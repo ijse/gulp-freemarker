@@ -25,12 +25,38 @@ module.exports = function (param) {
 			return callback();
 		}
 
+		var _this = this;
+
 		if (file.isStream()) {
 
-			// accepting streams is optional
-			this.emit("error",
-				new gutil.PluginError("gulp-freemarker", "Stream content is not supported"));
-			return callback();
+			var mockDataTxt = '';
+
+			file.contents.on('data', function(chunk) {
+				mockDataTxt += chunk;
+			});
+
+			file.contents.on('end', function() {
+				var mockData = JSON.parse(mockDataTxt);
+				Fm.render(mockData.tpl, mockData.data, function(err, out, msg) {
+					var stream = through();
+
+					stream.write(out || msg);
+
+					// Emit error to file
+					stream.on('error', _this.emit.bind(_this, 'error'));
+					file.contents = stream;
+					stream.end();
+
+					_this.push(file);
+					return callback();
+				});
+			});
+
+			file.contents.on('error', function(err) {
+				_this.emit('error',
+					new gutil.PluginError('gulp-freemarker', 'Read stream error!'));
+			});
+
 		}
 
 		// check if file.contents is a `Buffer`
@@ -40,13 +66,12 @@ module.exports = function (param) {
 			var mockData = JSON.parse(file.contents);
 
 			// process template with mock data
-			var _this = this;
 			Fm.render(mockData.tpl, mockData.data, function(err, out, msg) {
 
 				// return result or error msg from freemarker engine
 				file.contents = new Buffer(out || msg);
 				_this.push(file);
-				callback()
+				return callback();
 			});
 
 		}
