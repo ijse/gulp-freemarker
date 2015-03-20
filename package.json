@@ -19,17 +19,17 @@
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "dependencies": {
-    "freemarker.js": "^1.0.0",
-    "gulp-util": "~2.2.0",
-    "through2": "*"
+    "freemarker.js": "^1.0.1",
+    "gulp-util": "^3.0.4",
+    "through2": "^1.1.1"
   },
   "devDependencies": {
-    "mocha": "*",
     "coveralls": "*",
-    "mocha-lcov-reporter": "*",
-    "istanbul": "*",
     "event-stream": "*",
-    "should": "~2.1.0"
+    "istanbul": "*",
+    "mocha": "*",
+    "mocha-lcov-reporter": "*",
+    "should": "^5.2.0"
   },
   "engines": {
     "node": ">=0.8.0",
