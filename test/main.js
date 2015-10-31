@@ -2,7 +2,6 @@
 
 var fs = require('fs')
 	, es = require('event-stream')
-	, should = require('should')
 	, expect = require('expect.js')
 	, path = require('path')
 
