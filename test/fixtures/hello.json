@@ -1,5 +1,5 @@
 {
-	"tpl": "hello.ftl",
+	"file": "hello.ftl",
 	"data": {
 		"name": "World"
 	}
