@@ -23,7 +23,7 @@ module.exports = function(options) {
 			}catch(err){
 				callback(err)
 			}
-			engine.render(config.file, config.data, function(err, html, output) {
+			engine.render(config.file || config.tpl, config.data, function(err, html, output) {
 				if (err) return cb(err)
 				file.contents = new Buffer(html || output)
 				file.path = file.path.replace('.json', '.html') // fixme: feels a bit hacky
@@ -42,7 +42,7 @@ module.exports = function(options) {
 				}catch(err){
 					callback(err)
 				}
-				engine.render(config.file, config.data, function(err, html, output) {
+				engine.render(config.file || config.tpl, config.data, function(err, html, output) {
 					if (err) return callback(err)
 					var stream = through()
 					stream.on('error', this.emit.bind(this, 'error'))
