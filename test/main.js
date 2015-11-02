@@ -1,120 +1,92 @@
-/*global describe, it*/
-"use strict";
+'use strict';
 
-var fs = require("fs"),
-	es = require("event-stream"),
-	should = require("should");
+var fs = require('fs')
+	, es = require('event-stream')
+	, expect = require('expect.js')
+	, path = require('path')
 
-require("mocha");
+require('mocha')
 
-delete require.cache[require.resolve("../")];
+delete require.cache[require.resolve('../')]
 
-var gutil = require("gulp-util"),
-	freemarker = require("../");
+var File = require('gulp-util').File
+	, freemarker = require('../index')
 
-describe("gulp-freemarker", function () {
+describe('gulp-freemarker', function () {
 
-	var expectedFile = new gutil.File({
-		path: "test/expected/hello.txt",
-		cwd: "test/",
-		base: "test/expected",
-		contents: fs.readFileSync("test/expected/hello.txt")
-	});
+	var expectedFile, sourceStream, sourceBuffer, defaultOptions
 
-	it("should produce expected file via buffer", function (done) {
+	beforeEach(function() {
+		expectedFile = new File({
+			path: path.join(__dirname, 'expected', 'hello.txt'),
+			cwd: __dirname,
+			base: path.join(__dirname, 'expected'),
+			contents: fs.readFileSync(path.join(__dirname, 'expected', 'hello.txt'))
+		})
+		sourceStream = new File({
+			path: path.join(__dirname, 'fixtures', 'hello.json'),
+			cwd: __dirname,
+			base: path.join(__dirname, 'fixtures'),
+			contents: fs.createReadStream(path.join(__dirname, 'fixtures', 'hello.json'))
+		})
+		sourceBuffer = new File({
+			path: path.join(__dirname, 'fixtures', 'hello.json'),
+			cwd: __dirname,
+			base: path.join(__dirname, 'fixtures'),
+			contents: fs.readFileSync(path.join(__dirname, 'fixtures', 'hello.json'))
+		})
+		defaultOptions = {viewRoot: path.join(__dirname, 'fixtures'), options: {}}
+	})
 
-		var srcFile = new gutil.File({
-			path: "test/fixtures/hello.json",
-			cwd: "test/",
-			base: "test/fixtures",
-			contents: fs.readFileSync("test/fixtures/hello.json")
-		});
+	it('exports a function', function(){
+		expect(freemarker).to.be.a('function')
+	})
 
-		var stream = freemarker({
-			viewRoot: 'test/fixtures',
-			options: {}
-		});
+	it('throws an error if invoked without arguments', function(){
+		expect(freemarker).throwException(/^invoked with no arguments!$/)
+	})
 
-		stream.on("error", function(err) {
-			should.exist(err);
-			done(err);
-		});
+	it('throws an error if no viewRoot is defined', function(){
+		expect(function(){
+			freemarker({viewRoot: undefined})
+		}).to.throwException(/^viewRoot option is mandatory!$/)
+	})
 
-		stream.on("data", function (newFile) {
+	it('skips null files', function(done) {
+		var nullFile = new File()
+			, stream = freemarker(defaultOptions)
+		stream.on('data', function(file){
+			expect(file).to.equal(nullFile)
+			done()
+		})
+		stream.write(nullFile)
+		stream.end()
+	})
 
-			should.exist(newFile);
-			should.exist(newFile.contents);
+	it('produces file on stream', function (done) {
+		var stream = freemarker(defaultOptions)
+		stream.on('data', function (file) {
+			expect(file).to.be.ok()
+			expect(file.contents).to.be.ok()
+			file.contents.pipe(es.wait(function(err, data) {
+				expect(err).to.be(null)
+				expect(String(data)).to.be(String(expectedFile.contents))
+				done()
+			}))
+		})
+		stream.write(sourceStream)
+		stream.end()
+	})
 
-			String(newFile.contents).should.equal(String(expectedFile.contents));
-			done();
-		});
-
-		stream.write(srcFile);
-		stream.end();
-	});
-
-	// it.skip("should error on stream", function (done) {
-
-	// 	var srcFile = new gutil.File({
-	// 		path: "test/fixtures/hello.json",
-	// 		cwd: "test/",
-	// 		base: "test/fixtures",
-	// 		contents: fs.createReadStream("test/fixtures/hello.json")
-	// 	});
-
-	// 	var stream = freemarker({
-	// 		viewRoot: 'test/fixtures',
-	// 		options: {}
-	// 	});
-
-	// 	stream.on("error", function(err) {
-	// 		should.exist(err);
-	// 		done();
-	// 	});
-
-	// 	stream.on("data", function (newFile) {
-	// 		newFile.contents.pipe(es.wait(function(err, data) {
-	// 			done(err);
-	// 		}));
-	// 	});
-
-	// 	stream.write(srcFile);
-	// 	stream.end();
-	// });
-
-	it("should produce expected file via stream", function (done) {
-
-		var srcFile = new gutil.File({
-			path: "test/fixtures/hello.json",
-			cwd: "test/",
-			base: "test/fixtures",
-			contents: fs.createReadStream("test/fixtures/hello.json")
-		});
-
-		var stream = freemarker({
-			viewRoot: 'test/fixtures',
-			options: {}
-		});
-
-		stream.on("error", function(err) {
-			should.exist(err);
-			console.log(err);
-			done();
-		});
-
-		stream.on("data", function (newFile) {
-
-			should.exist(newFile);
-			should.exist(newFile.contents);
-
-			newFile.contents.pipe(es.wait(function(err, data) {
-				should.not.exist(err);
-				(''+data).should.equal(String(expectedFile.contents));
-				done();
-			}));
-		});
-
-		stream.write(srcFile);
-		stream.end();
-	});
-});
+	it('produces file on buffer', function (done) {
+		var stream = freemarker(defaultOptions);
+		stream.on('data', function (file) {
+			expect(file).to.be.ok()
+			expect(file.contents).to.be.ok()
+			expect(String(file.contents)).to.be(String(expectedFile.contents))
+			done()
+		})
+		stream.write(sourceBuffer)
+		stream.end()
+	})
+})

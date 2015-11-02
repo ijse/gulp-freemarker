@@ -1,82 +1,61 @@
-var through = require("through2"),
-	Freemarker = require('freemarker.js'),
-	gutil = require("gulp-util");
+var through = require('through2')
+	, Freemarker = require('freemarker.js')
+	, PluginError = require('gulp-util').PluginError
 
-module.exports = function (param) {
-	"use strict";
-	var Fm = null;
+module.exports = function(options) {
 
-	// check for required params
-	if (!param) {
-		throw new gutil.PluginError("gulp-freemarker", "No param supplied");
-	}
-	if (!param.viewRoot) {
-		throw new gutil.PluginError("gulp-freemarker", "viewRoot param is necessary!");
-	}
+	if (!arguments.length)
+		throw new PluginError('gulp-freemarker', 'invoked with no arguments!')
 
-	Fm = new Freemarker(param);
+	if (!options.viewRoot)
+		throw new PluginError('gulp-freemarker', 'viewRoot option is mandatory!')
 
-	function freemarker(file, enc, callback) {
-		/*jshint validthis:true*/
+	var engine = new Freemarker(options)
 
-		// Do nothing if no contents
-		if (file.isNull()) {
-			this.push(file);
-			return callback();
+	return through.obj(function(file, encoding, callback) {
+		if (file.isNull()){
+			this.push(file)
+			return callback()
 		}
-
-		var _this = this;
-
-		if (file.isStream()) {
-
-			var mockDataTxt = '';
-
-			file.contents.on('data', function(chunk) {
-				mockDataTxt += chunk;
-			});
-
-			file.contents.on('end', function() {
-				var mockData = JSON.parse(mockDataTxt);
-				Fm.render(mockData.tpl, mockData.data, function(err, out, msg) {
-					var stream = through();
-
-					stream.write(out || msg);
-
-					// Emit error to file
-					stream.on('error', _this.emit.bind(_this, 'error'));
-					file.contents = stream;
-					stream.end();
-
-					_this.push(file);
-					return callback();
-				});
-			});
-
-			file.contents.on('error', function(err) {
-				_this.emit('error',
-					new gutil.PluginError('gulp-freemarker', 'Read stream error!'));
-			});
-
-		}
-
-		// check if file.contents is a `Buffer`
 		if (file.isBuffer()) {
-
-			// Get mock data
-			var mockData = JSON.parse(file.contents);
-
-			// process template with mock data
-			Fm.render(mockData.tpl, mockData.data, function(err, out, msg) {
-
-				// return result or error msg from freemarker engine
-				file.contents = new Buffer(out || msg);
-				_this.push(file);
-				return callback();
-			});
-
+			try{
+				var config = JSON.parse(file.contents)
+			}catch(err){
+				callback(err)
+			}
+			engine.render(config.file || config.tpl, config.data, function(err, html, output) {
+				if (err) return cb(err)
+				file.contents = new Buffer(html || output)
+				file.path = file.path.replace('.json', '.html') // fixme: feels a bit hacky
+				this.push(file)
+				return cb(null)
+			}.bind(this))
 		}
-		return ;
-	}
-
-	return through.obj(freemarker);
-};
+		if (file.isStream()){
+			var data = []
+			file.contents.on('data', function(chunk) {
+				data.push(chunk)
+			})
+			file.contents.on('end', function() {
+				try{
+					var config = JSON.parse(data.join(String()))
+				}catch(err){
+					callback(err)
+				}
+				engine.render(config.file || config.tpl, config.data, function(err, html, output) {
+					if (err) return callback(err)
+					var stream = through()
+					stream.on('error', this.emit.bind(this, 'error'))
+					stream.write(html || output)
+					file.contents = stream
+					stream.end()
+					this.push(file)
+					return callback(null)
+				}.bind(this))
+			}.bind(this))
+			file.contents.on('error', function(err) {
+				this.emit('error', new PluginError('gulp-freemarker', 'Read stream error!'))
+			}.bind(this))
+		}
+	})
+}

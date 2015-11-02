@@ -26,10 +26,10 @@
   "devDependencies": {
     "coveralls": "*",
     "event-stream": "*",
+    "expect.js": "^0.3.1",
     "istanbul": "*",
     "mocha": "*",
-    "mocha-lcov-reporter": "*",
-    "should": "^5.2.0"
+    "mocha-lcov-reporter": "*"
   },
   "engines": {
     "node": ">=0.8.0",

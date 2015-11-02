@@ -29,7 +29,7 @@ You should provide mock files, which type is json:
 
 ```json
 {
-	"tpl": "hello.ftl",
+	"file": "hello.ftl",
 	"data": {
 		"name": "World"
 	}
@@ -37,7 +37,7 @@ You should provide mock files, which type is json:
 ```
 
 
-* `tpl` is relative to `viewRoot`, gulp-freemarker will read and process `${viewRoot}/${tpl}` file.
+* `file` is relative to `viewRoot`, gulp-freemarker will read and process `${viewRoot}/${file}` file.
 
 * `data` is the data model the template required.
 
