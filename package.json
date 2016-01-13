@@ -21,6 +21,7 @@
   "dependencies": {
     "freemarker.js": "^1.2.2",
     "gulp-util": "^3.0.4",
+    "istanbul": "^0.4.2",
     "through2": "^1.1.1"
   },
   "devDependencies": {
