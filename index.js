@@ -24,7 +24,7 @@ module.exports = function(options) {
 				callback(err)
 			}
 			engine.render(config.file || config.tpl, config.data, function(err, html, output) {
-				if (err) return callback(err)
+				if (err) return callback(err + output)
 				file.contents = new Buffer(html || output)
 				file.path = file.path.replace('.json', '.html') // fixme: feels a bit hacky
 				this.push(file)
@@ -43,7 +43,7 @@ module.exports = function(options) {
 					callback(err)
 				}
 				engine.render(config.file || config.tpl, config.data, function(err, html, output) {
-					if (err) return callback(err)
+					if (err) return callback(err + output)
 					var stream = through()
 					stream.on('error', this.emit.bind(this, 'error'))
 					stream.write(html || output)
