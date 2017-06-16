@@ -1,6 +1,6 @@
 {
   "name": "gulp-freemarker",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A plugin for Gulp to process Freemarker template files like Java.",
   "keywords": [
     "gulpplugin",
